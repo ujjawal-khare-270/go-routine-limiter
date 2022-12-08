@@ -11,14 +11,14 @@ func goLimiter(limit int, isDone chan bool) {
 	counter := 0
 
 	for len(queue) > 0 {
-		for counter < limit {
+		for counter < limit && len(queue) > 0 {
 			go ApiCall(queue[0], ch)
 			counter++
+		}
 
-			b := <-ch
-			if b {
-				counter--
-			}
+		b := <-ch
+		if b {
+			counter--
 			queue = append(queue[1:])
 		}
 	}
@@ -33,6 +33,7 @@ func ApiCall(i int, ch chan bool) {
 
 func main() {
 	isDone := make(chan bool)
+	queue = append(queue, 1)
 	queue = append(queue, 1)
 	goLimiter(2, isDone)
 }
