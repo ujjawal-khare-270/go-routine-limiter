@@ -1,39 +1,43 @@
 package main
 
 import (
+	"fmt"
 	"time"
 )
 
-var queue = make([]int, 1000)
+var queue = make([]int, 0)
 
 func goLimiter(limit int, isDone chan bool) {
 	ch := make(chan bool, limit)
 	counter := 0
+	i := 0
 
-	for len(queue) > 0 {
-		for counter < limit && len(queue) > 0 {
-			go ApiCall(queue[0], ch)
+	for i < len(queue) {
+		for counter < limit && i < len(queue) {
+			go ApiCall(queue[i], ch)
+			fmt.Println("Go routine ", i, " ", len(queue))
+			i++
 			counter++
 		}
 
 		b := <-ch
 		if b {
 			counter--
-			queue = append(queue[1:])
 		}
 	}
 
-	isDone <- true
+	//isDone <- true
 }
 
 func ApiCall(i int, ch chan bool) {
-	time.Sleep(time.Duration(i))
+	time.Sleep(time.Second * time.Duration(i))
+	fmt.Println("Done with param", i)
 	ch <- true
 }
 
 func main() {
 	isDone := make(chan bool)
-	queue = append(queue, 1)
-	queue = append(queue, 1)
-	goLimiter(2, isDone)
+	queue = append(queue, 3)
+	queue = append(queue, 3)
+	goLimiter(1, isDone)
 }
